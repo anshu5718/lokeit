@@ -46,6 +46,8 @@ jobs:
       - name: Install npm packages
         run: cd scraper && npm install
 
+      - name: Install Chromium for Puppeteer
+        run: cd scraper && npx puppeteer browsers install chrome
       - name: Run vacancy scraper
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
