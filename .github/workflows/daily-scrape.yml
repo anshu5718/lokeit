@@ -39,15 +39,19 @@ jobs:
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: cd scraper && node scrape.js
 
-      - name: Commit updated vacancies
+            - name: Commit updated vacancies
         run: |
           git config --global user.name "LokIT Bot 🤖"
           git config --global user.email "lokit-bot@users.noreply.github.com"
 
-          # Ensure latest remote changes
-          git fetch origin main
-          git checkout main
+          # Stash scraper changes temporarily
+          git stash push --include-untracked
+
+          # Get latest remote changes
           git pull --rebase origin main
+
+          # Restore scraper changes
+          git stash pop || true
 
           git add public/vacancies.json
 
@@ -58,12 +62,7 @@ jobs:
 
           git commit -m "🔄 Update IT vacancies — $(date +'%Y-%m-%d')"
 
-          # Retry push in case another workflow pushed first
-          git push origin main || (
-            git pull --rebase origin main &&
-            git push origin main
-          )
-
+          git push origin main
       - name: Trigger Netlify deploy
         if: env.NETLIFY_BUILD_HOOK != ''
         env:
