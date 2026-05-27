@@ -12,6 +12,7 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +28,20 @@ jobs:
       - name: Install system dependencies for Puppeteer
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libnss3 libxss1 libasound2t64
+          sudo apt-get install -y -q \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libxkbcommon0 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxrandr2 \
+            libgbm1 \
+            libnss3 \
+            libxss1 \
+            libasound2t64
 
       - name: Install npm packages
         run: cd scraper && npm install
@@ -39,19 +53,10 @@ jobs:
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: cd scraper && node scrape.js
 
-            - name: Commit updated vacancies
+      - name: Commit updated vacancies
         run: |
           git config --global user.name "LokIT Bot 🤖"
           git config --global user.email "lokit-bot@users.noreply.github.com"
-
-          # Stash scraper changes temporarily
-          git stash push --include-untracked
-
-          # Get latest remote changes
-          git pull --rebase origin main
-
-          # Restore scraper changes
-          git stash pop || true
 
           git add public/vacancies.json
 
@@ -62,7 +67,11 @@ jobs:
 
           git commit -m "🔄 Update IT vacancies — $(date +'%Y-%m-%d')"
 
-          git push origin main
+          git fetch origin main
+          git rebase origin/main
+
+          git push origin HEAD:main
+
       - name: Trigger Netlify deploy
         if: env.NETLIFY_BUILD_HOOK != ''
         env:
