@@ -53,7 +53,7 @@ jobs:
           PUPPETEER_SKIP_DOWNLOAD: false
         run: cd scraper && node scrape.js
 
-      - name: Commit updated vacancies
+            - name: Commit updated vacancies
         run: |
           git config --global user.name "LokIT Bot 🤖"
           git config --global user.email "lokit-bot@users.noreply.github.com"
@@ -67,10 +67,7 @@ jobs:
 
           git commit -m "🔄 Update IT vacancies — $(date +'%Y-%m-%d')"
 
-          git fetch origin main
-          git rebase origin/main
-
-          git push origin HEAD:main
+          git push origin main
 
       - name: Trigger Netlify deploy
         if: env.NETLIFY_BUILD_HOOK != ''
