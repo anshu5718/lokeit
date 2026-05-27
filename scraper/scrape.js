@@ -104,7 +104,7 @@ async function scrapeOnlinePortal(browser) {
     });
 
     // Wait a moment for lazy-loaded data
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Try clicking on "Advertisements" / "Vacancies" links if present
     const clicked = await page.evaluate(() => {
@@ -118,7 +118,7 @@ async function scrapeOnlinePortal(browser) {
     });
 
     if (clicked) {
-      await page.waitForTimeout(4000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
   } catch (err) {
     console.warn('  ⚠ Portal navigation error:', err.message);
@@ -170,7 +170,7 @@ async function scrapeMainSite(browser) {
   for (const url of pages) {
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       const items = await page.evaluate(() => {
         const results = [];
@@ -238,7 +238,7 @@ async function scrapeProvincePSC(browser) {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const items = await page.evaluate(() => {
       const results = [];
