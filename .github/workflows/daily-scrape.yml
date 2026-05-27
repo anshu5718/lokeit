@@ -44,6 +44,11 @@ jobs:
           git config --global user.name "LokIT Bot 🤖"
           git config --global user.email "lokit-bot@users.noreply.github.com"
 
+          # Ensure latest remote changes
+          git fetch origin main
+          git checkout main
+          git pull --rebase origin main
+
           git add public/vacancies.json
 
           if git diff --staged --quiet; then
@@ -53,10 +58,11 @@ jobs:
 
           git commit -m "🔄 Update IT vacancies — $(date +'%Y-%m-%d')"
 
-          # Sync with remote before push
-          git pull origin main --rebase
-
-          git push origin main
+          # Retry push in case another workflow pushed first
+          git push origin main || (
+            git pull --rebase origin main &&
+            git push origin main
+          )
 
       - name: Trigger Netlify deploy
         if: env.NETLIFY_BUILD_HOOK != ''
