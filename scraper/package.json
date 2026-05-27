@@ -1,0 +1,17 @@
+{
+  "name": "lokit-scraper",
+  "version": "1.0.0",
+  "description": "Daily PSC Nepal IT vacancy scraper",
+  "main": "scrape.js",
+  "scripts": {
+    "scrape": "node scrape.js",
+    "test": "node scrape.js --dry-run"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "nodemailer": "^6.9.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LokIT — Live Loksewa IT Vacancies Nepal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#060b14;--surface:#0d1625;--card:#101c2e;--border:#1a2d45;
+  --accent:#00e5ff;--accent2:#ff6b35;--hetauda:#ffd700;--hetauda-bg:rgba(255,215,0,0.06);
+  --eligible:#22c55e;--eligible-bg:rgba(34,197,94,0.08);
+  --partial:#f59e0b;--partial-bg:rgba(245,158,11,0.08);
+  --ineligible:#ef4444;--text:#e2e8f0;--muted:#4a6080;--muted2:#7a94b0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+
+/* ── OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(6,11,20,0.85);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay.hidden{display:none;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;animation:slideUp 0.35s cubic-bezier(.16,1,.3,1);}
+.modal-header{padding:28px 28px 20px;border-bottom:1px solid var(--border);}
+.modal-title{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--muted2);}
+.modal-body{padding:24px 28px;}
+.modal-footer{padding:0 28px 24px;display:flex;gap:10px;justify-content:flex-end;}
+
+.field{margin-bottom:18px;}
+.field label{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--muted2);text-transform:uppercase;margin-bottom:8px;}
+.field input,.field select{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Syne',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field select option{background:var(--card);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field-hint{font-size:11px;color:var(--muted);margin-top:5px;}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;}
+.check-item{display:flex;align-items:center;gap:7px;background:var(--card);border:1.5px solid var(--border);border-radius:7px;padding:8px 12px;cursor:pointer;transition:all .15s;font-size:13px;}
+.check-item:hover{border-color:var(--accent);color:var(--accent);}
+.check-item input{display:none;}
+.check-item.checked{background:rgba(0,229,255,0.08);border-color:var(--accent);color:var(--accent);}
+.check-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .15s;}
+.check-item.checked .check-dot{background:var(--accent);}
+
+.btn{padding:11px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;border:none;}
+.btn-primary{background:var(--accent);color:var(--bg);}
+.btn-primary:hover{opacity:.85;transform:scale(.98);}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--muted2);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:7px 16px;font-size:12px;border-radius:6px;}
+.btn-apply{background:transparent;border:1.5px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:8px 18px;border-radius:7px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-apply:hover,.btn-apply.eligible-apply{background:var(--eligible);border-color:var(--eligible);color:#000;}
+.btn-apply.partial-apply{border-color:var(--partial);color:var(--partial);}
+.btn-apply.partial-apply:hover{background:var(--partial);color:#000;}
+.hetauda-card .btn-apply.eligible-apply,.hetauda-card .btn-apply:hover{background:var(--hetauda);border-color:var(--hetauda);color:#000;}
+
+/* live badge */
+.live-dot{display:inline-block;width:7px;height:7px;background:var(--eligible);border-radius:50%;margin-right:5px;animation:pulseGreen 1.5s ease-in-out infinite;}
+
+/* ── NOTIFICATION BAR ── */
+.notif-bar{position:fixed;top:0;left:0;right:0;z-index:200;transform:translateY(-100%);transition:transform .4s cubic-bezier(.16,1,.3,1);}
+.notif-bar.show{transform:translateY(0);}
+.notif-inner{background:var(--eligible);color:#000;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;}
+.notif-inner.new{background:var(--accent);color:var(--bg);}
+.notif-close{cursor:pointer;font-size:20px;line-height:1;opacity:.7;}
+.notif-close:hover{opacity:1;}
+
+/* ── TOAST ── */
+.new-toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px 18px;max-width:320px;z-index:300;display:none;animation:slideInRight .4s cubic-bezier(.16,1,.3,1);}
+.new-toast.show{display:block;}
+.toast-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:5px;}
+.toast-body{font-size:12px;color:var(--muted2);line-height:1.5;}
+.toast-close{position:absolute;top:10px;right:12px;cursor:pointer;font-size:16px;color:var(--muted2);}
+.toast-close:hover{color:var(--text);}
+.toast-actions{display:flex;gap:7px;margin-top:10px;}
+
+/* ── MAIN LAYOUT ── */
+.container{max-width:1100px;margin:0 auto;padding:0 20px;position:relative;z-index:1;}
+header{padding:28px 0 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--bg);}
+.logo-text{font-size:20px;font-weight:800;letter-spacing:-.5px;}
+.logo-text span{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.profile-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:6px 14px 6px 8px;cursor:pointer;transition:border-color .2s;font-size:13px;}
+.profile-pill:hover{border-color:var(--accent);}
+.profile-avatar{width:26px;height:26px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--bg);}
+.profile-name{font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.notif-bell{position:relative;width:38px;height:38px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:border-color .2s;}
+.notif-bell:hover{border-color:var(--accent);}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--accent2);border-radius:50%;border:2px solid var(--bg);display:none;}
+.notif-dot.active{display:block;animation:pulseRed 1.5s ease-in-out infinite;}
+
+/* ── HERO ── */
+.hero{padding:48px 0 36px;text-align:center;}
+.hero-eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:14px;opacity:0;animation:fadeUp .5s .1s forwards;}
+.hero h1{font-size:clamp(28px,5.5vw,52px);font-weight:800;line-height:1.06;letter-spacing:-2px;margin-bottom:14px;opacity:0;animation:fadeUp .5s .2s forwards;}
+.hero h1 .c1{color:var(--accent);}
+.hero h1 .c2{color:var(--hetauda);}
+.hero-sub{font-size:14px;color:var(--muted2);max-width:460px;margin:0 auto 36px;line-height:1.7;opacity:0;animation:fadeUp .5s .3s forwards;}
+
+/* ── LAST UPDATED ── */
+.last-updated{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);text-align:center;margin-bottom:20px;letter-spacing:.5px;}
+.last-updated .live{color:var(--eligible);}
+
+/* ── LEGEND ── */
+.elig-legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:32px;opacity:0;animation:fadeUp .5s .35s forwards;}
+.elig-item{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--muted2);}
+.elig-dot{width:8px;height:8px;border-radius:50%;}
+.elig-dot.e{background:var(--eligible);}
+.elig-dot.p{background:var(--partial);}
+.elig-dot.i{background:var(--ineligible);}
+.elig-dot.u{background:var(--muted);}
+
+/* ── SETUP PROMPT ── */
+.setup-prompt{background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(0,229,255,0.02));border:1px solid rgba(0,229,255,0.15);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.setup-prompt.hidden{display:none;}
+.setup-left{display:flex;align-items:center;gap:14px;}
+.setup-icon{font-size:28px;}
+.setup-title{font-size:15px;font-weight:700;margin-bottom:3px;}
+.setup-sub{font-size:12px;color:var(--muted2);}
+
+/* ── SEARCH ── */
+.search-wrap{max-width:660px;margin:0 auto 14px;opacity:0;animation:fadeUp .5s .4s forwards;}
+.search-box{display:flex;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.search-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.08);}
+.search-icon{padding:0 14px;display:flex;align-items:center;color:var(--muted);font-size:18px;}
+.search-input{flex:1;background:none;border:none;outline:none;padding:14px 0;font-family:'Syne',sans-serif;font-size:14px;color:var(--text);}
+.search-input::placeholder{color:var(--muted);}
+.search-btn{margin:5px;padding:9px 22px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.search-btn:hover{opacity:.85;}
+.filters{max-width:660px;margin:0 auto 10px;display:flex;flex-wrap:wrap;gap:7px;opacity:0;animation:fadeUp .5s .45s forwards;}
+.filter-btn{font-family:'Space Mono',monospace;font-size:10px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.06);}
+.elig-filter{max-width:660px;margin:0 auto 12px;display:flex;gap:7px;flex-wrap:wrap;opacity:0;animation:fadeUp .5s .47s forwards;}
+.elig-filter-btn{font-family:'Space Mono',monospace;font-size:10px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;transition:all .2s;letter-spacing:.5px;display:flex;align-items:center;gap:5px;}
+.elig-filter-btn .dot{width:6px;height:6px;border-radius:50%;}
+.elig-filter-btn:hover,.elig-filter-btn.active{background:rgba(255,255,255,.04);}
+.elig-filter-btn[data-ef="eligible"].active{border-color:var(--eligible);color:var(--eligible);}
+.elig-filter-btn[data-ef="partial"].active{border-color:var(--partial);color:var(--partial);}
+.elig-filter-btn[data-ef="ineligible"].active{border-color:var(--ineligible);color:var(--ineligible);}
+.hetauda-toggle{max-width:660px;margin:0 auto 36px;display:flex;align-items:center;gap:10px;opacity:0;animation:fadeUp .5s .5s forwards;}
+.toggle-track{width:38px;height:20px;background:var(--border);border-radius:20px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-track.on{background:var(--hetauda);}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none;}
+.toggle-track.on .toggle-thumb{transform:translateX(18px);}
+.toggle-label{font-size:12px;color:var(--muted2);cursor:pointer;}
+.toggle-label span{color:var(--hetauda);font-weight:700;}
+
+/* ── STATS ── */
+.stats-bar{display:flex;gap:0;margin-bottom:26px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.stat{flex:1;padding:16px 18px;border-right:1px solid var(--border);text-align:center;}
+.stat:last-child{border-right:none;}
+.stat-val{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;line-height:1;}
+.stat-val.c-accent{color:var(--accent);}
+.stat-val.c-gold{color:var(--hetauda);}
+.stat-val.c-green{color:var(--eligible);}
+.stat-val.c-orange{color:var(--accent2);}
+.stat-label{font-size:10px;color:var(--muted2);margin-top:4px;letter-spacing:.3px;}
+
+/* ── RESULTS ── */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.results-count{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted2);}
+.results-count strong{color:var(--accent);}
+.sort-select{background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;padding:6px 10px;cursor:pointer;outline:none;}
+
+/* ── CARDS ── */
+.vacancy-grid{display:flex;flex-direction:column;gap:12px;}
+.vacancy-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;transition:border-color .2s,transform .15s,box-shadow .2s;animation:fadeUp .4s both;cursor:default;position:relative;overflow:hidden;}
+.vacancy-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border);transition:background .2s;}
+.vacancy-card:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(0,0,0,.3);}
+.vacancy-card.elig-eligible::before{background:var(--eligible);}
+.vacancy-card.elig-partial::before{background:var(--partial);}
+.vacancy-card.elig-ineligible::before{background:var(--ineligible);}
+.vacancy-card.elig-unknown::before{background:var(--muted);}
+.vacancy-card.elig-eligible{border-color:rgba(34,197,94,.25);background:linear-gradient(135deg,var(--card),rgba(34,197,94,.03));}
+.vacancy-card.elig-partial{border-color:rgba(245,158,11,.2);}
+.vacancy-card.elig-ineligible{opacity:.55;}
+.vacancy-card.elig-eligible:hover{border-color:rgba(34,197,94,.45);}
+.vacancy-card.hetauda-card{border-color:var(--hetauda)!important;background:linear-gradient(135deg,var(--card),var(--hetauda-bg))!important;box-shadow:0 0 20px rgba(255,215,0,.1);}
+.vacancy-card.hetauda-card:hover{box-shadow:0 8px 36px rgba(255,215,0,.18);transform:translateY(-2px);}
+.vacancy-card.hetauda-card::before{background:var(--hetauda)!important;}
+.hetauda-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.35);color:var(--hetauda);font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:1px;margin-bottom:7px;}
+.elig-badge{display:inline-flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;margin-bottom:7px;letter-spacing:.5px;}
+.elig-badge.eligible{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--eligible);}
+.elig-badge.partial{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--partial);}
+.elig-badge.ineligible{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--ineligible);}
+.elig-badge.unknown{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted2);}
+.card-org{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:.3px;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.org-dot{width:5px;height:5px;background:var(--eligible);border-radius:50%;animation:pulseGreen 2s ease-in-out infinite;}
+.card-title{font-size:16px;font-weight:700;margin-bottom:10px;line-height:1.3;letter-spacing:-.3px;}
+.hetauda-card .card-title{color:var(--hetauda);}
+.card-meta{display:flex;flex-wrap:wrap;gap:6px;}
+.meta-tag{font-family:'Space Mono',monospace;font-size:9px;padding:3px 9px;border-radius:5px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--muted2);}
+.meta-tag.type{border-color:rgba(0,229,255,.15);color:rgba(0,229,255,.7);}
+.meta-tag.level{border-color:rgba(255,107,53,.15);color:rgba(255,107,53,.7);}
+.inelig-reason{font-size:11px;color:var(--ineligible);margin-top:8px;display:flex;align-items:center;gap:5px;opacity:.8;}
+.partial-reason{font-size:11px;color:var(--partial);margin-top:8px;display:flex;align-items:center;gap:5px;}
+.card-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.posts-count{text-align:right;}
+.posts-num{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;line-height:1;}
+.posts-label{font-size:9px;color:var(--muted2);letter-spacing:.5px;}
+.deadline-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.deadline-date{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;}
+.deadline-date.urgent{color:var(--accent2);}
+.deadline-date.safe{color:var(--eligible);}
+.deadline-date.closed{color:var(--muted);}
+
+/* ── LOADING / EMPTY ── */
+.loading{text-align:center;padding:80px 20px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+.load-txt{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted2);letter-spacing:2px;}
+.empty-state{text-align:center;padding:80px 20px;display:none;}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.35;}
+.empty-title{font-size:18px;font-weight:700;margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--muted2);}
+
+/* ── FETCH ERROR ── */
+.fetch-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:20px 24px;margin-bottom:24px;text-align:center;display:none;}
+.fetch-error-title{font-size:15px;font-weight:700;color:var(--ineligible);margin-bottom:6px;}
+.fetch-error-sub{font-size:12px;color:var(--muted2);}
+
+/* source note */
+.source-note{max-width:660px;margin:0 auto 28px;padding:12px 16px;background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.08);border-radius:8px;font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:8px;}
+.source-note a{color:var(--accent);text-decoration:none;}
+
+footer{margin-top:72px;padding:28px 0;border-top:1px solid var(--border);text-align:center;}
+.footer-text{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted2);letter-spacing:.8px;}
+.footer-text a{color:var(--accent);text-decoration:none;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:translateX(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulseGreen{0%,100%{opacity:1;}50%{opacity:.4;}}
+@keyframes pulseRed{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:600px){
+  .vacancy-card{grid-template-columns:1fr;}
+  .card-right{align-items:flex-start;flex-direction:row;flex-wrap:wrap;}
+  .stats-bar{flex-wrap:wrap;}
+  .stat{min-width:50%;}
+  header{flex-direction:column;gap:12px;}
+  .field-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Notification bar -->
+<div class="notif-bar" id="notifBar">
+  <div class="notif-inner new" id="notifInner">
+    <span id="notifMsg">🔔 New IT vacancy added!</span>
+    <span class="notif-close" onclick="closeNotifBar()">×</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="new-toast" id="newToast">
+  <span class="toast-close" onclick="closeToast()">×</span>
+  <div class="toast-title">🔔 New Vacancy Alert</div>
+  <div class="toast-body" id="toastBody">A new IT vacancy matching your profile was added.</div>
+  <div class="toast-actions">
+    <button class="btn btn-primary btn-sm" onclick="scrollToNew();closeToast()">View Vacancy</button>
+    <button class="btn btn-outline btn-sm" onclick="closeToast()">Dismiss</button>
+  </div>
+</div>
+
+<!-- Profile Setup Modal -->
+<div class="overlay" id="setupOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Setup Your Profile</div>
+      <div class="modal-sub">We'll check eligibility for every IT Loksewa vacancy against your qualifications.</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="pName" placeholder="Ram Bahadur Thapa"/>
+        </div>
+        <div class="field">
+          <label>Email (for alerts)</label>
+          <input type="email" id="pEmail" placeholder="ram@example.com"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Highest Education</label>
+        <select id="pEducation">
+          <option value="">-- Select --</option>
+          <option value="slc">SLC / SEE</option>
+          <option value="plus2">+2 / Intermediate</option>
+          <option value="diploma">Diploma (3-year)</option>
+          <option value="bachelor">Bachelor's Degree</option>
+          <option value="master">Master's Degree</option>
+          <option value="phd">PhD</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Field of Study / Specialization</label>
+        <select id="pField">
+          <option value="">-- Select --</option>
+          <option value="cs">Computer Science / IT</option>
+          <option value="engineering">Computer Engineering</option>
+          <option value="electronics">Electronics / Communication Engineering</option>
+          <option value="informatics">Information Management / Informatics</option>
+          <option value="science">Science (with IT)</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="field-hint">Select the closest match to your degree subject.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Years of IT Experience</label>
+          <select id="pExperience">
+            <option value="0">No experience</option>
+            <option value="1">Less than 1 year</option>
+            <option value="2">1–2 years</option>
+            <option value="3">2–3 years</option>
+            <option value="5">3–5 years</option>
+            <option value="7">5+ years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Age</label>
+          <input type="number" id="pAge" placeholder="25" min="18" max="45"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Preferred District(s)</label>
+        <div class="checkbox-group" id="districtGroup">
+          <div class="check-item checked" data-val="Hetauda"><input type="checkbox" checked><div class="check-dot"></div> Hetauda ⭐</div>
+          <div class="check-item" data-val="Kathmandu"><input type="checkbox"><div class="check-dot"></div> Kathmandu</div>
+          <div class="check-item" data-val="Pokhara"><input type="checkbox"><div class="check-dot"></div> Pokhara</div>
+          <div class="check-item" data-val="Biratnagar"><input type="checkbox"><div class="check-dot"></div> Biratnagar</div>
+          <div class="check-item" data-val="Butwal"><input type="checkbox"><div class="check-dot"></div> Butwal</div>
+          <div class="check-item" data-val="any"><input type="checkbox"><div class="check-dot"></div> Any</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Enable Vacancy Alerts</label>
+        <div class="checkbox-group">
+          <div class="check-item checked" id="alertToggle">
+            <input type="checkbox" checked><div class="check-dot"></div> 🔔 Notify me when new IT vacancies are added
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="skipSetup()">Skip for now</button>
+      <button class="btn btn-primary" onclick="saveProfile()">Save & Check Eligibility →</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">IT</div>
+      <div class="logo-text">Lok<span>IT</span></div>
+    </div>
+    <div class="header-right">
+      <div class="notif-bell" id="bellBtn" onclick="showNotifPanel()" title="Vacancy Alerts">
+        🔔<div class="notif-dot" id="notifDot"></div>
+      </div>
+      <div class="profile-pill" id="profilePill" onclick="openEditProfile()">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <span class="profile-name" id="profilePillName">Setup Profile</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <p class="hero-eyebrow"><span class="live-dot"></span>Live • Public Service Commission • Nepal • IT Sector</p>
+    <h1>Loksewa <span class="c1">IT</span> Vacancies<br>+ <span class="c2">Eligibility Check</span></h1>
+    <p class="hero-sub">Real vacancies scraped daily from PSC Nepal. Auto-checks eligibility. Notified by email when new posts open. Hetauda vacancies highlighted.</p>
+  </section>
+
+  <div class="elig-legend">
+    <div class="elig-item"><div class="elig-dot e"></div> ELIGIBLE</div>
+    <div class="elig-item"><div class="elig-dot p"></div> PARTIALLY ELIGIBLE</div>
+    <div class="elig-item"><div class="elig-dot i"></div> NOT ELIGIBLE</div>
+    <div class="elig-item"><div class="elig-dot u"></div> SET PROFILE TO CHECK</div>
+  </div>
+
+  <div class="setup-prompt" id="setupPromptBar">
+    <div class="setup-left">
+      <div class="setup-icon">👤</div>
+      <div>
+        <div class="setup-title">Set up your profile to check eligibility</div>
+        <div class="setup-sub">Tell us your education & experience — instantly see which vacancies you qualify for.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openSetup()">Setup Now →</button>
+  </div>
+
+  <!-- Fetch error banner -->
+  <div class="fetch-error" id="fetchError">
+    <div class="fetch-error-title">⚠ Could not load live vacancies</div>
+    <div class="fetch-error-sub">Make sure the GitHub Actions scraper has run at least once. Check the <code>public/vacancies.json</code> file in your repo.</div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search post, ministry, district…"/>
+      <button class="search-btn">Search</button>
+    </div>
+  </div>
+
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-filter="all">All Posts</button>
+    <button class="filter-btn" data-filter="officer">Officer</button>
+    <button class="filter-btn" data-filter="assistant">Assistant</button>
+    <button class="filter-btn" data-filter="new">🆕 New</button>
+  </div>
+
+  <div class="elig-filter" id="eligFilters">
+    <button class="elig-filter-btn active" data-ef="all">All</button>
+    <button class="elig-filter-btn" data-ef="eligible"><span class="dot" style="background:var(--eligible)"></span>Eligible</button>
+    <button class="elig-filter-btn" data-ef="partial"><span class="dot" style="background:var(--partial)"></span>Partial</button>
+    <button class="elig-filter-btn" data-ef="ineligible"><span class="dot" style="background:var(--ineligible)"></span>Not Eligible</button>
+  </div>
+
+  <div class="hetauda-toggle">
+    <div class="toggle-track on" id="hetaudaToggle"><div class="toggle-thumb"></div></div>
+    <div class="toggle-label" id="hetaudaLabel">Highlight <span>Hetauda</span> vacancies first</div>
+  </div>
+
+  <div class="source-note">
+    <span>ℹ️</span>
+    <span>Data scraped daily from <a href="https://www.psc.gov.np" target="_blank">PSC Nepal</a> &amp; <a href="https://spsc.bagamati.gov.np" target="_blank">Bagmati Province PSC</a>. Apply at <a href="https://psconline1.psc.gov.np/#/login" target="_blank">psconline1.psc.gov.np</a>. Always verify on official notice.</span>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val c-accent" id="totalCount">—</div><div class="stat-label">Total IT Vacancies</div></div>
+    <div class="stat"><div class="stat-val c-green" id="eligCount">—</div><div class="stat-label">You're Eligible</div></div>
+    <div class="stat"><div class="stat-val c-gold" id="hetaudaCount">—</div><div class="stat-label">⭐ Hetauda</div></div>
+    <div class="stat"><div class="stat-val c-orange" id="closingCount">—</div><div class="stat-label">Closing Soon</div></div>
+  </div>
+
+  <div class="results-header">
+    <div class="results-count" id="resultsCount">Showing <strong>—</strong> results</div>
+    <select class="sort-select" id="sortSelect">
+      <option value="eligible">Sort: Eligible First</option>
+      <option value="deadline">Sort: Deadline</option>
+      <option value="posts">Sort: Posts</option>
+      <option value="alpha">Sort: A–Z</option>
+      <option value="new">Sort: Newest First</option>
+    </select>
+  </div>
+
+  <div class="last-updated" id="lastUpdated"></div>
+  <div id="vacancyGrid">
+    <div class="loading"><div class="spinner"></div><div class="load-txt">FETCHING LIVE VACANCIES…</div></div>
+  </div>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">No IT vacancies found</div>
+    <div class="empty-sub">Try different keywords or adjust filters. The scraper runs daily at ~6:30 AM NPT.</div>
+  </div>
+
+  <footer>
+    <p class="footer-text">LokIT &nbsp;|&nbsp; <a href="https://www.psc.gov.np" target="_blank">PSC Nepal</a> &nbsp;|&nbsp; <a href="https://psconline1.psc.gov.np/#/login" target="_blank">Apply Online</a> &nbsp;|&nbsp; Data updates daily • Eligibility is indicative only</p>
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════
+const EDU_RANK = {slc:1,plus2:2,diploma:3,bachelor:4,master:5,phd:6};
+let profile = null;
+let VACANCIES = [];
+let state = {search:'',filter:'all',eligFilter:'all',hetauda:true,sort:'eligible'};
+
+// ═══════════════════════════════════════════════════
+// FETCH LIVE VACANCIES from /vacancies.json
+// ═══════════════════════════════════════════════════
+async function fetchVacancies() {
+  try {
+    const res = await fetch('/vacancies.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    VACANCIES = data.vacancies || [];
+
+    // Update last-updated display
+    if (data.lastUpdated) {
+      const d = new Date(data.lastUpdated);
+      document.getElementById('lastUpdated').innerHTML =
+        `<span class="live">●</span> Last scraped: ${d.toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'})} &nbsp;|&nbsp; ${VACANCIES.length} IT vacancies`;
+    }
+
+    // Show new vacancy notifications
+    const newOnes = VACANCIES.filter(v => v.isNew);
+    if (newOnes.length > 0) {
+      document.getElementById('notifDot').classList.add('active');
+      if (profile?.alerts !== false) {
+        const eligible = newOnes.filter(v => checkEligibility(v).status === 'eligible');
+        document.getElementById('notifMsg').textContent =
+          `🔔 ${newOnes.length} new IT vacancies${eligible.length ? ` — ${eligible.length} you're eligible for!` : ''}`;
+        setTimeout(() => {
+          document.getElementById('notifBar').classList.add('show');
+          setTimeout(closeNotifBar, 7000);
+        }, 1200);
+        if (eligible.length > 0) setTimeout(() => showToast(eligible[0]), 2500);
+      }
+    }
+
+    renderCards();
+  } catch (err) {
+    console.error('Failed to load vacancies:', err);
+    document.getElementById('fetchError').style.display = 'block';
+    document.getElementById('vacancyGrid').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').querySelector('.empty-sub').textContent =
+      'Could not load vacancy data. Make sure the GitHub Actions scraper has run. Error: ' + err.message;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ELIGIBILITY ENGINE
+// ═══════════════════════════════════════════════════
+function checkEligibility(v) {
+  if (!profile) return {status:'unknown',missing:[]};
+  const eduOk  = EDU_RANK[profile.education] >= EDU_RANK[v.minEducation || 'plus2'];
+  const fieldOk = !v.minField || v.minField.includes(profile.field)
+                  || ['cs','engineering'].includes(profile.field);
+  const expOk  = parseInt(profile.experience) >= (v.minExp || 0);
+  const ageOk  = !profile.age ||
+    (parseInt(profile.age) >= (v.minAge||18) && parseInt(profile.age) <= (v.maxAge||45));
+
+  const missing = [];
+  if (!eduOk)  missing.push(`Requires ${(v.minEducation||'').toUpperCase()} degree`);
+  if (!fieldOk) missing.push(`Field mismatch`);
+  if (!expOk)  missing.push(`${v.minExp}+ year(s) IT experience required`);
+  if (!ageOk)  missing.push(`Age ${v.minAge||18}–${v.maxAge||45}`);
+
+  if (missing.length === 0) return {status:'eligible',missing:[]};
+  if (missing.length <= 1 && eduOk && expOk) return {status:'partial',missing};
+  return {status:'ineligible',missing};
+}
+
+// ═══════════════════════════════════════════════════
+// DATE HELPERS
+// ═══════════════════════════════════════════════════
+function daysUntil(d) {
+  if (!d) return 999;
+  return Math.ceil((new Date(d) - new Date()) / 864e5);
+}
+function dlClass(d) {
+  const n = daysUntil(d);
+  if (n < 0) return 'closed';
+  if (n <= 7) return 'urgent';
+  return 'safe';
+}
+function dlLabel(d) {
+  if (!d) return 'TBD';
+  const n = daysUntil(d);
+  if (n < 0) return 'Closed';
+  if (n === 0) return 'Today!';
+  if (n === 1) return '1 day left';
+  return `${n} days left`;
+}
+function isHetauda(v) {
+  return (v.district||'').toLowerCase().includes('hetauda');
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════
+function getFiltered() {
+  let data = VACANCIES.map(v => ({...v, elig: checkEligibility(v)}));
+
+  if (state.search.trim()) {
+    const q = state.search.toLowerCase();
+    data = data.filter(v =>
+      (v.title||'').toLowerCase().includes(q) ||
+      (v.org||'').toLowerCase().includes(q) ||
+      (v.district||'').toLowerCase().includes(q)
+    );
+  }
+  if (state.filter === 'officer')   data = data.filter(v => (v.level||'').toLowerCase().includes('officer'));
+  if (state.filter === 'assistant') data = data.filter(v => (v.level||'').toLowerCase().includes('assistant'));
+  if (state.filter === 'new')       data = data.filter(v => v.isNew);
+  if (state.eligFilter !== 'all')   data = data.filter(v => v.elig.status === state.eligFilter);
+
+  const eligRank = {eligible:0,partial:1,unknown:2,ineligible:3};
+  if (state.sort === 'eligible') data.sort((a,b) => eligRank[a.elig.status] - eligRank[b.elig.status]);
+  else if (state.sort === 'deadline') data.sort((a,b) => daysUntil(a.deadline) - daysUntil(b.deadline));
+  else if (state.sort === 'posts')  data.sort((a,b) => (b.posts||1) - (a.posts||1));
+  else if (state.sort === 'alpha')  data.sort((a,b) => (a.title||'').localeCompare(b.title||''));
+  else if (state.sort === 'new')    data.sort((a,b) => (b.isNew?1:0) - (a.isNew?1:0));
+
+  if (state.hetauda) {
+    const het = data.filter(isHetauda);
+    const oth = data.filter(v => !isHetauda(v));
+    data = [...het, ...oth];
+  }
+  return data;
+}
+
+function eligBadgeHTML(elig) {
+  if (elig.status==='eligible')   return `<div class="elig-badge eligible">✓ YOU'RE ELIGIBLE</div>`;
+  if (elig.status==='partial')    return `<div class="elig-badge partial">~ PARTIALLY ELIGIBLE</div>`;
+  if (elig.status==='ineligible') return `<div class="elig-badge ineligible">✗ NOT ELIGIBLE</div>`;
+  return `<div class="elig-badge unknown">? SETUP PROFILE</div>`;
+}
+
+function reasonHTML(elig) {
+  if (elig.status==='ineligible'||elig.status==='partial') {
+    return elig.missing.map(m =>
+      `<div class="${elig.status==='partial'?'partial-reason':'inelig-reason'}">
+        <span>${elig.status==='partial'?'⚠':'✗'}</span> ${m}</div>`
+    ).join('');
+  }
+  if (elig.status==='eligible')
+    return `<div style="font-size:11px;color:var(--eligible);margin-top:6px;">✓ All qualifications met — you can apply!</div>`;
+  return '';
+}
+
+function renderCards() {
+  const data = getFiltered();
+  const grid = document.getElementById('vacancyGrid');
+  const empty = document.getElementById('emptyState');
+
+  document.getElementById('resultsCount').innerHTML =
+    `Showing <strong>${data.length}</strong> result${data.length!==1?'s':''}`;
+
+  updateStats();
+
+  if (!data.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  grid.innerHTML = data.map((v,i) => {
+    const het = isHetauda(v) && state.hetauda;
+    const dc  = dlClass(v.deadline);
+    const applyClass = v.elig.status==='eligible'
+      ? 'btn-apply eligible-apply'
+      : v.elig.status==='partial'
+        ? 'btn-apply partial-apply'
+        : 'btn-apply';
+
+    return `
+    <div class="vacancy-card ${het?'hetauda-card':''} elig-${v.elig.status} ${v.isNew?'new-vacancy':''}"
+         style="animation-delay:${i*0.035}s" id="vc-${v.id}">
+      <div>
+        ${het ? `<div class="hetauda-badge">⭐ HETAUDA</div>` : ''}
+        ${v.isNew ? `<div class="hetauda-badge" style="background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.35);color:var(--accent);${het?'margin-left:6px':''}">🆕 NEW</div>` : ''}
+        ${eligBadgeHTML(v.elig)}
+        <div class="card-org"><div class="org-dot"></div>${v.org || 'PSC Nepal'}</div>
+        <div class="card-title">${v.title}</div>
+        <div class="card-meta">
+          <span class="meta-tag type">IT / Technical</span>
+          <span class="meta-tag level">${v.level||'Technical'}</span>
+          <span class="meta-tag">📍 ${v.district||'Nepal'}</span>
+          ${v.advNo ? `<span class="meta-tag">📋 ${v.advNo}</span>` : ''}
+          <span class="meta-tag">🎓 ${(v.minEducation||'plus2').toUpperCase()}+</span>
+          ${v.minExp>0 ? `<span class="meta-tag">🕐 ${v.minExp}yr exp</span>` : ''}
+          <span class="meta-tag">🔗 ${v.source}</span>
+        </div>
+        ${reasonHTML(v.elig)}
+      </div>
+      <div class="card-right">
+        <div class="posts-count">
+          <div class="posts-num">${v.posts||1}</div>
+          <div class="posts-label">POSTS</div>
+        </div>
+        <div>
+          <div class="deadline-label">DEADLINE</div>
+          <div class="deadline-date ${dc}">${dlLabel(v.deadline)}</div>
+        </div>
+        <a class="${applyClass}" href="${v.applyUrl||'https://psconline1.psc.gov.np/#/login'}" target="_blank">
+          ${v.elig.status==='eligible'?'Apply Now →':'View →'}
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('totalCount').textContent = VACANCIES.length || '—';
+  if (profile) {
+    const e = VACANCIES.filter(v => checkEligibility(v).status === 'eligible');
+    document.getElementById('eligCount').textContent = e.length;
+  }
+  document.getElementById('hetaudaCount').textContent =
+    VACANCIES.filter(isHetauda).length || '—';
+  document.getElementById('closingCount').textContent =
+    VACANCIES.filter(v => { const d=daysUntil(v.deadline); return d>=0&&d<=7; }).length || '—';
+}
+
+// ═══════════════════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════════════════
+function loadProfile() {
+  try { profile = JSON.parse(localStorage.getItem('lokitProfile')||'null'); } catch { profile=null; }
+}
+function openSetup() { document.getElementById('setupOverlay').classList.remove('hidden'); if(profile)populateForm(); }
+function openEditProfile() { openSetup(); }
+function closeSetup() { document.getElementById('setupOverlay').classList.add('hidden'); }
+function skipSetup() { closeSetup(); }
+function populateForm() {
+  if(!profile)return;
+  document.getElementById('pName').value=profile.name||'';
+  document.getElementById('pEmail').value=profile.email||'';
+  document.getElementById('pEducation').value=profile.education||'';
+  document.getElementById('pField').value=profile.field||'';
+  document.getElementById('pExperience').value=profile.experience||'0';
+  document.getElementById('pAge').value=profile.age||'';
+  document.querySelectorAll('#districtGroup .check-item').forEach(el => {
+    el.classList.toggle('checked', !!(profile.districts && profile.districts.includes(el.dataset.val)));
+  });
+}
+function saveProfile() {
+  const education=document.getElementById('pEducation').value;
+  const field=document.getElementById('pField').value;
+  if(!education||!field){alert('Please select your education and field of study.');return;}
+  profile={
+    name:document.getElementById('pName').value.trim(),
+    email:document.getElementById('pEmail').value.trim(),
+    education,field,
+    experience:document.getElementById('pExperience').value,
+    age:document.getElementById('pAge').value,
+    districts:[...document.querySelectorAll('#districtGroup .check-item.checked')].map(e=>e.dataset.val),
+    alerts:document.getElementById('alertToggle').classList.contains('checked'),
+  };
+  localStorage.setItem('lokitProfile',JSON.stringify(profile));
+  updateProfileUI();
+  closeSetup();
+  document.getElementById('setupPromptBar').classList.add('hidden');
+  renderCards();
+  const newElig = VACANCIES.filter(v=>v.isNew&&checkEligibility(v).status==='eligible');
+  if(newElig.length) showToast(newElig[0]);
+}
+function updateProfileUI() {
+  if(!profile)return;
+  const initials=(profile.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('profileAvatar').textContent=initials;
+  document.getElementById('profilePillName').textContent=profile.name||'My Profile';
+}
+
+// ═══════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════
+function showToast(v) {
+  document.getElementById('toastBody').innerHTML=
+    `<strong>${v.title}</strong><br>${v.org||'PSC Nepal'} ${isHetauda(v)?'📍 Hetauda':''} — you are eligible!`;
+  const t=document.getElementById('newToast');
+  t.classList.add('show');
+  setTimeout(closeToast,7000);
+}
+function closeToast(){document.getElementById('newToast').classList.remove('show');}
+function scrollToNew(){const el=document.querySelector('.new-vacancy');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});}
+function closeNotifBar(){document.getElementById('notifBar').classList.remove('show');}
+function showNotifPanel(){
+  const n=VACANCIES.filter(v=>v.isNew);
+  if(!n.length){alert('No new vacancies since last scrape.');return;}
+  const msg=n.map(v=>{
+    const e=checkEligibility(v);
+    return `• ${v.title} — ${v.district||'Nepal'} [${e.status.toUpperCase()}]`;
+  }).join('\n');
+  alert(`🔔 New IT Vacancies (${n.length}):\n\n${msg}\n\nApply at psconline1.psc.gov.np`);
+}
+
+// ═══════════════════════════════════════════════════
+// CHECKBOX TOGGLE
+// ═══════════════════════════════════════════════════
+document.querySelectorAll('.check-item').forEach(el => {
+  el.addEventListener('click', () => el.classList.toggle('checked'));
+});
+
+// ═══════════════════════════════════════════════════
+// FILTERS & SEARCH
+// ═══════════════════════════════════════════════════
+document.getElementById('searchInput').addEventListener('input', e => {
+  state.search=e.target.value; renderCards();
+});
+document.getElementById('searchInput').addEventListener('keyup', e => {
+  if(e.key==='Enter'){state.search=e.target.value;renderCards();}
+});
+document.querySelector('.search-btn').addEventListener('click', () => {
+  state.search=document.getElementById('searchInput').value; renderCards();
+});
+document.getElementById('filters').addEventListener('click', e => {
+  if(!e.target.matches('.filter-btn'))return;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  state.filter=e.target.dataset.filter; renderCards();
+});
+document.getElementById('eligFilters').addEventListener('click', e => {
+  if(!e.target.closest('.elig-filter-btn'))return;
+  const btn=e.target.closest('.elig-filter-btn');
+  document.querySelectorAll('.elig-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.eligFilter=btn.dataset.ef; renderCards();
+});
+document.getElementById('hetaudaToggle').addEventListener('click', () => {
+  state.hetauda=!state.hetauda;
+  document.getElementById('hetaudaToggle').classList.toggle('on',state.hetauda);
+  renderCards();
+});
+document.getElementById('hetaudaLabel').addEventListener('click', () => {
+  document.getElementById('hetaudaToggle').click();
+});
+document.getElementById('sortSelect').addEventListener('change', e => {
+  state.sort=e.target.value; renderCards();
+});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+loadProfile();
+if(profile){
+  document.getElementById('setupOverlay').classList.add('hidden');
+  document.getElementById('setupPromptBar').classList.add('hidden');
+  updateProfileUI();
+} else {
+  document.getElementById('setupOverlay').classList.remove('hidden');
+}
+fetchVacancies();
+</script>
+</body>
+</html>
