@@ -1,7 +1,11 @@
 {
   "vacancies": [],
-  "lastUpdated": null,
+  "lastUpdated": "2026-05-27T04:57:08.899Z",
   "totalIT": 0,
   "newCount": 0,
-  "sources": ["psc.gov.np", "psconline1.psc.gov.np", "spsc.bagamati.gov.np"]
+  "sources": [
+    "psc.gov.np",
+    "psconline1.psc.gov.np",
+    "spsc.bagamati.gov.np"
+  ]
 }
