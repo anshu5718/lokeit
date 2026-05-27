@@ -39,13 +39,24 @@ jobs:
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: cd scraper && node scrape.js
 
-      - name: Commit and Push updated vacancies
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "🔄 Update IT vacancies — Automatically"
-          file_pattern: 'public/vacancies.json'
-          commit_user_name: "LokIT Bot 🤖"
-          commit_user_email: "lokit-bot@users.noreply.github.com"
+      - name: Commit updated vacancies
+        run: |
+          git config --global user.name "LokIT Bot 🤖"
+          git config --global user.email "lokit-bot@users.noreply.github.com"
+
+          git add public/vacancies.json
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "🔄 Update IT vacancies — $(date +'%Y-%m-%d')"
+
+          # Sync with remote before push
+          git pull origin main --rebase
+
+          git push origin main
 
       - name: Trigger Netlify deploy
         if: env.NETLIFY_BUILD_HOOK != ''
