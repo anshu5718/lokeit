@@ -1,7 +1,7 @@
 {
   "vacancies": [
     {
-      "id": "spsc.bagamati.gov.np-1781244035389-1",
+      "id": "spsc.bagamati.gov.np-1781329537140-1",
       "source": "spsc.bagamati.gov.np",
       "title": "अनलाइन दरखास्त व्यवस्थापन प्रणाली (PSRMS)",
       "org": "",
@@ -13,11 +13,11 @@
       "advNo": "",
       "level": "Technical",
       "isNew": false,
-      "scrapedAt": "2026-06-12T06:00:35.389Z",
+      "scrapedAt": "2026-06-13T05:45:37.140Z",
       "rawTitle": "अनलाइन दरखास्त व्यवस्थापन प्रणाली (PSRMS)"
     },
     {
-      "id": "spsc.bagamati.gov.np-1781244035390-2",
+      "id": "spsc.bagamati.gov.np-1781329537140-2",
       "source": "spsc.bagamati.gov.np",
       "title": "सेवाहरू",
       "org": "",
@@ -29,7 +29,7 @@
       "advNo": "",
       "level": "Technical",
       "isNew": false,
-      "scrapedAt": "2026-06-12T06:00:35.390Z",
+      "scrapedAt": "2026-06-13T05:45:37.140Z",
       "rawTitle": "सेवाहरू"
     },
     {
@@ -80,7 +80,7 @@
       "rawTitle": "२०८३-०१-१० Request for Expression of Interest (Support and Enhancement of Online System of PSC)"
     }
   ],
-  "lastUpdated": "2026-06-12T06:00:48.682Z",
+  "lastUpdated": "2026-06-13T05:45:47.515Z",
   "totalIT": 5,
   "newCount": 0,
   "sources": [
